@@ -1,14 +1,30 @@
-using Category;
-
-namespace Operation
+namespace OperationSpace
 {
-    class Operation
+    public class Operation
     {
-        public required Guid IdOperation { get; set; }
-        public required OperationType Type { get; set; }
-        public required Guid AccountId { get; set; }
-        public required int Amount { get; set; }
-        public required DateTime Date { get; set; }
-        public required Guid CategoryId { get; set; }
+        public Guid OperationId { get; set; }
+        public OperationType Type { get; set; }
+        public Guid AccountId { get; set; }
+        public decimal Amount { get; set; }
+        public DateTime Date { get; set; }
+        public Guid CategoryId { get; set; }
+        public string? Description { get; set; }
+
+        public Operation(Guid operationId, OperationType type, decimal amount, DateTime date, Guid categoryId)
+        {
+            if (amount <= 0)
+            {
+                throw new ArgumentException("Сумма не может быть отрицательной или ноль");
+            }
+            if (operationId == Guid.Empty || categoryId == Guid.Empty)
+            {
+                throw new ArgumentException("Айди должны быть валидными!");
+            }
+            OperationId = operationId;
+            Type = type;
+            Amount = amount;
+            Date = date;
+            CategoryId = categoryId;
+        }
     }
 }
