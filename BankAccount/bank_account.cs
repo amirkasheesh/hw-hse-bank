@@ -83,7 +83,7 @@ namespace BankAccountSpace
                 {
                     sum_of_expense += el.Amount;
                 }
-                else
+                else if (el.Type == OperationType.Income)
                 {
                     sum_of_income += el.Amount;
                 }
@@ -98,6 +98,26 @@ namespace BankAccountSpace
             var sorted_operations = ShowOperationsByDate(from, to);
             sorted_operations = sorted_operations.OrderBy(op => op.CategoryId).ThenBy(op => op.Date).ToList();
             return sorted_operations;
+        }
+
+        public bool SelfCheckBalance()
+        {
+            decimal sum_of_expense = 0;
+            decimal sum_of_income = 0;
+            foreach (var el in _collectionOfOperations)
+            {
+                if (el.Type == OperationType.Expense)
+                {
+                    sum_of_expense += el.Amount;
+                }
+                else if (el.Type == OperationType.Income)
+                {
+                    sum_of_income += el.Amount;
+                }
+            }
+
+            decimal res = sum_of_income - sum_of_expense;
+            return res == Balance;
         }
     }
 }
