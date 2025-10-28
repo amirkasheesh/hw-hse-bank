@@ -70,5 +70,27 @@ namespace BankAccountSpace
             operations.Sort((op_1, op_2) => op_1.Date.CompareTo(op_2.Date));
             return operations;
         }
+
+        public (decimal income, decimal expense, decimal total) CalculateTotalsByDate(DateTime from, DateTime to)
+        {
+            var sorted_operations = ShowOperationsByDate(from, to);
+
+            decimal sum_of_expense = 0;
+            decimal sum_of_income = 0;
+            foreach (var el in sorted_operations)
+            {
+                if (el.Type == OperationType.Expense)
+                {
+                    sum_of_expense += el.Amount;
+                }
+                else
+                {
+                    sum_of_income += el.Amount;
+                }
+            }
+
+            decimal res = sum_of_income - sum_of_expense;
+            return (sum_of_income, sum_of_expense, res);
+        }
     }
 }
