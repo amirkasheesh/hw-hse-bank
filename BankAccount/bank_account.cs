@@ -1,4 +1,5 @@
 using CategorySpace;
+using Microsoft.VisualBasic;
 using OperationSpace;
 
 namespace BankAccountSpace
@@ -61,6 +62,62 @@ namespace BankAccountSpace
         public List<Operation> ShowOperations()
         {
             return _collectionOfOperations.ToList();
+        }
+
+        public List<Operation> ShowOperationsByDate(DateTime from, DateTime to)
+        {
+            var operations = _collectionOfOperations.Where(op => op.Date >= from && op.Date <= to).ToList();
+            operations.Sort((op_1, op_2) => op_1.Date.CompareTo(op_2.Date));
+            return operations;
+        }
+
+        public (decimal income, decimal expense, decimal total) CalculateTotalsByDate(DateTime from, DateTime to)
+        {
+            var sorted_operations = ShowOperationsByDate(from, to);
+
+            decimal sum_of_expense = 0;
+            decimal sum_of_income = 0;
+            foreach (var el in sorted_operations)
+            {
+                if (el.Type == OperationType.Expense)
+                {
+                    sum_of_expense += el.Amount;
+                }
+                else if (el.Type == OperationType.Income)
+                {
+                    sum_of_income += el.Amount;
+                }
+            }
+
+            decimal res = sum_of_income - sum_of_expense;
+            return (sum_of_income, sum_of_expense, res);
+        }
+
+        public List<Operation> GetInfByCategoryForPeriod(DateTime from, DateTime to)
+        {
+            var sorted_operations = ShowOperationsByDate(from, to);
+            sorted_operations = sorted_operations.OrderBy(op => op.CategoryId).ThenBy(op => op.Date).ToList();
+            return sorted_operations;
+        }
+
+        public bool SelfCheckBalance()
+        {
+            decimal sum_of_expense = 0;
+            decimal sum_of_income = 0;
+            foreach (var el in _collectionOfOperations)
+            {
+                if (el.Type == OperationType.Expense)
+                {
+                    sum_of_expense += el.Amount;
+                }
+                else if (el.Type == OperationType.Income)
+                {
+                    sum_of_income += el.Amount;
+                }
+            }
+
+            decimal res = sum_of_income - sum_of_expense;
+            return res == Balance;
         }
     }
 }
