@@ -92,5 +92,12 @@ namespace BankAccountSpace
             decimal res = sum_of_income - sum_of_expense;
             return (sum_of_income, sum_of_expense, res);
         }
+
+        public List<Operation> GetInfByCategoryForPeriod(DateTime from, DateTime to)
+        {
+            var sorted_operations = ShowOperationsByDate(from, to);
+            sorted_operations = sorted_operations.OrderBy(op => op.CategoryId).ThenBy(op => op.Date).ToList();
+            return sorted_operations;
+        }
     }
 }
