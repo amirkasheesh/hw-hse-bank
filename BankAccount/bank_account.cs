@@ -1,4 +1,5 @@
 using CategorySpace;
+using Microsoft.VisualBasic;
 using OperationSpace;
 
 namespace BankAccountSpace
@@ -61,6 +62,13 @@ namespace BankAccountSpace
         public List<Operation> ShowOperations()
         {
             return _collectionOfOperations.ToList();
+        }
+
+        public List<Operation> ShowOperationsByDate(DateTime from, DateTime to)
+        {
+            var operations = _collectionOfOperations.Where(op => op.Date >= from && op.Date <= to).ToList();
+            operations.Sort((op_1, op_2) => op_1.Date.CompareTo(op_2.Date));
+            return operations;
         }
     }
 }
