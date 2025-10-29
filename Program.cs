@@ -98,8 +98,57 @@ namespace HseBankSpace
 
         private static void CheckYourBalanceFunc()
         {
-            throw new NotImplementedException();
+            Console.Clear();
+            Console.WriteLine("Давайте проверим баланс!\n");
+
+            var account = SelectAccount();
+            if (account == null)
+            {
+                return;
+            }
+
+            var ops = account.ShowOperationsByDate(DateTime.MinValue, DateTime.MaxValue);
+
+            if (ops.Count == 0)
+            {
+                System.Console.WriteLine("Операций за весь период нет!");
+                return;
+            }
+
+            decimal income = 0, expense = 0;
+
+            foreach (var op in ops)
+            {
+                if (op.Type == OperationType.Income)
+                {
+                    income += op.Amount;
+                }
+                else if (op.Type == OperationType.Expense)
+                {
+                    expense += op.Amount;
+                }
+            }
+
+            decimal computed = income - expense;
+            decimal stored = account.Balance;
+            decimal diff = computed - stored;
+
+            Console.WriteLine($"Счёт: {account.Name} ({account.AccountId})");
+            Console.WriteLine($"Текущий баланс: {stored:F2}");
+            Console.WriteLine($"Баланс по операциям: {computed:F2}");
+            Console.WriteLine($"Доходы: {income:F2}; Расходы: {expense:F2}; Операций: {ops.Count}");
+
+            if (diff == 0)
+            {
+                Console.WriteLine("Баланс сходится");
+            }
+            else
+            {
+                Console.WriteLine($"Баланс НЕ сходится. Разница: {diff:F2}");
+            }
+            return;
         }
+
 
         private static void GiveSummaryByCategoryForPeriod()
         {
