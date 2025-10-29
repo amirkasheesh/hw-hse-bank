@@ -1,5 +1,4 @@
 using CategorySpace;
-using Microsoft.VisualBasic;
 using OperationSpace;
 
 namespace BankAccountSpace
@@ -15,7 +14,7 @@ namespace BankAccountSpace
             {
                 return _balance;
             }
-            set
+            private set
             {
                 _balance = value;
             }
@@ -40,6 +39,44 @@ namespace BankAccountSpace
 
             Guid guid = Guid.NewGuid();
             Operation local_operation = new Operation(guid, category.Type, amount, date, category.CategoryId);
+            local_operation.AccountId = this.AccountId;
+
+            if (local_operation.Type == OperationType.Income)
+            {
+                Balance += local_operation.Amount;
+            }
+            else
+            {
+                if (Balance >= local_operation.Amount)
+                {
+                    Balance -= local_operation.Amount;
+                }
+                else
+                {
+                    throw new ArgumentOutOfRangeException("Баланс не может быть отрицательным!");
+                }
+            }
+            _collectionOfOperations.Add(local_operation);
+        }
+        public void AddOperation(decimal amount, DateTime date, Category category, string description)
+        {
+            if (category == null)
+            {
+                throw new ArgumentNullException("Передан недействительный объект!");
+            }
+
+            if (this.AccountId == Guid.Empty || category.CategoryId == Guid.Empty)
+            {
+                throw new ArgumentException("Айди должны быть валидными!");
+            }
+
+            if (date == DateTime.MinValue || date == DateTime.MaxValue)
+            {
+                throw new InvalidOperationException("Дата не установлена должным образом!");
+            }
+
+            Guid guid = Guid.NewGuid();
+            Operation local_operation = new Operation(guid, category.Type, amount, date, category.CategoryId, description);
             local_operation.AccountId = this.AccountId;
 
             if (local_operation.Type == OperationType.Income)
