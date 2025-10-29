@@ -108,7 +108,84 @@ namespace HseBankSpace
 
         private static void ResultsByPeriod()
         {
-            throw new NotImplementedException();
+            Console.Clear();
+            System.Console.WriteLine("Давайте выберем временной промежуток для итогов!");
+
+            DateTime data_start;
+            while (true)
+            {
+                System.Console.Write("\nВведите дату начала (dd.MM.yyyy) / (0 - назад): ");
+                string? input_start = Console.ReadLine();
+                if (string.IsNullOrWhiteSpace(input_start))
+                {
+                    System.Console.WriteLine("\nВы ввели пустую строку! Попробуйте еще раз!");
+                }
+                else if (input_start.Trim() == "0")
+                {
+                    return;
+                }
+                else if (!DateTime.TryParseExact(input_start.Trim(), "dd.MM.yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out var data_start_temp))
+                {
+                    System.Console.WriteLine("\nВы ввели дату в неправильном формате!");
+                }
+                else
+                {
+                    data_start = data_start_temp;
+                    break;
+                }
+
+            }
+
+            DateTime data_end;
+            while (true)
+            {
+                System.Console.Write("\nВведите дату конца (будет включительно) / (dd.MM.yyyy) / (0 - назад): ");
+                string? input_end = Console.ReadLine();
+                if (string.IsNullOrWhiteSpace(input_end))
+                {
+                    System.Console.WriteLine("\nВы ввели пустую строку! Попробуйте еще раз!");
+                }
+                else if (input_end.Trim() == "0")
+                {
+                    return;
+                }
+                else if (!DateTime.TryParseExact(input_end.Trim(), "dd.MM.yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out var data_end_temp))
+                {
+                    System.Console.WriteLine("\nВы ввели дату в неправильном формате!");
+                }
+                else
+                {
+                    data_end = data_end_temp;
+                    break;
+                }
+            }
+
+            if (data_start > data_end)
+            {
+                System.Console.WriteLine("\nДата начала НЕ может превышать даты конца! \nСделайте итоги заново с правильным интервалом!");
+                return;
+            }
+
+            Console.Clear();
+            BankAccount? chosen_account = SelectAccount();
+            if (chosen_account == null)
+            {
+                return;
+            }
+            var result = chosen_account.CalculateTotalsByDate(data_start, data_end);
+
+            if (result.income == 0 && result.expense == 0 && result.total == 0)
+            {
+                System.Console.WriteLine("За данный период не было ни одной операции! (Вероятно, вы выбрали не тот интервал)");
+                return;
+            }
+
+            System.Console.WriteLine($"Итоги операций за период с {data_start:dd.MM.yyyy} по {data_end:dd.MM.yyyy}\n");
+
+            System.Console.WriteLine($"Общий доход: {result.income:F2}");
+            System.Console.WriteLine($"Общий расход: {result.expense:F2}");
+            System.Console.WriteLine($"Итог: {result.total:F2}");
+            return;
         }
 
         private static void GiveExtractByPeriod()
