@@ -1,4 +1,5 @@
-﻿using BankAccountSpace;
+﻿using System.Globalization;
+using BankAccountSpace;
 using CategorySpace;
 using OperationSpace;
 
@@ -61,6 +62,7 @@ namespace HseBankSpace
                         CheckYourBalanceFunc();
                         break;
                     case "7":
+                        Console.Clear();
                         ShowMyAccounts();
                         break;
                     case "0":
@@ -74,13 +76,12 @@ namespace HseBankSpace
 
         private static void ShowMyAccounts()
         {
-            Console.Clear();
             if (bankAccounts.Count == 0)
             {
-                System.Console.WriteLine("Счетов еще нет!");
+                System.Console.WriteLine("Счетов еще нет! Создайте хотя бы один!");
                 return;
             }
-            System.Console.WriteLine("\tВаши доступные счета: \n\n");
+            System.Console.WriteLine("\tВаши доступные счета: \n");
             int res = 0;
             for (int i = 0; i < bankAccounts.Count; ++i)
             {
@@ -91,7 +92,7 @@ namespace HseBankSpace
                 System.Console.WriteLine();
                 ++res;
             }
-            System.Console.WriteLine($"Количество счетов: {res}");
+            System.Console.WriteLine($"Количество счетов: {res}\n");
         }
 
         private static void CheckYourBalanceFunc()
@@ -116,8 +117,222 @@ namespace HseBankSpace
 
         private static void AddSomeOperation()
         {
-            throw new NotImplementedException();
+            Console.Clear();
+            BankAccount? chosen_account = SelectAccount();
+            if (chosen_account == null)
+            {
+                return;
+            }
+
+            Category? chosen_category = SelectCategory();
+            if (chosen_category == null)
+            {
+                return;
+            }
+
+            DateTime date_op;
+            while (true)
+            {
+                System.Console.Write("\nВведите дату операции (формат dd.MM.yyyy) / (0 - назад): ");
+                string? input_date = Console.ReadLine() ?? "";
+                if (string.IsNullOrWhiteSpace(input_date))
+                {
+                    System.Console.WriteLine("\nВы ничего не ввели! Попробуйте еще раз!");
+                }
+                else if (input_date.Trim() == "0")
+                {
+                    return;
+                }
+                else if (!DateTime.TryParseExact(input_date.Trim(), "dd.MM.yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out var date_temp))
+                {
+                    System.Console.WriteLine("\nВы ввели дату в неверном формате! Попробуйте еще раз!");
+                }
+                else if (date_temp > DateTime.Now)
+                {
+                    System.Console.WriteLine("\nНельзя добавлять операции из будущего! Попробуйте еще раз!");
+                }
+                else
+                {
+                    date_op = date_temp;
+                    break;
+                }
+            }
+
+            decimal amount_op;
+            while (true)
+            {
+                System.Console.Write("\nВведите сумму операции (строго положительная) / (0 - назад): ");
+                string? input_amount = Console.ReadLine() ?? "";
+                if (string.IsNullOrWhiteSpace(input_amount))
+                {
+                    System.Console.WriteLine("\nВы ничего не ввели! Попробуйте еще раз!");
+                }
+                else if (input_amount.Trim() == "0")
+                {
+                    return;
+                }
+                else if (!decimal.TryParse(input_amount.Trim(), out var amount_temp))
+                {
+                    System.Console.WriteLine("\nВы ввели сумму в неверном формате! Попробуйте еще раз!");
+                }
+                else if (amount_temp <= 0)
+                {
+                    System.Console.WriteLine("\nСумма операции не может быть отрицательной или равной нулю! Попробуйте еще раз!");
+                }
+                else
+                {
+                    amount_op = amount_temp;
+                    break;
+                }
+            }
+
+            try
+            {
+                System.Console.WriteLine("\nСамый последний вопрос: хотите ли вы добавить описание в операцию?");
+                while (true)
+                {
+                    System.Console.Write("Введите (да/нет) / (0 - назад): ");
+                    string? input = Console.ReadLine();
+                    if (string.IsNullOrWhiteSpace(input))
+                    {
+                        System.Console.WriteLine("\nВы ничего не ввели! Попробуйте еще раз!");
+                    }
+                    else if (input.Trim() == "0")
+                    {
+                        return;
+                    }
+                    else if (input.Trim().ToLower() == "да")
+                    {
+                        System.Console.Write("Введите любое описание: ");
+                        string? descr = Console.ReadLine() ?? "Ничего";
+                        chosen_account.AddOperation(amount_op, date_op, chosen_category, descr);
+
+                        Console.Clear();
+                        System.Console.WriteLine("\nОперация была добавлена! (с описанием)");
+                        System.Console.WriteLine($"\nДата операции: {date_op:dd.MM.yyyy}");
+                        System.Console.WriteLine($"Категория: {chosen_category.Name}");
+                        System.Console.WriteLine($"Сумма: {amount_op:F2}\n");
+                        System.Console.WriteLine($"Новый баланс: {chosen_account.Balance:F2}");
+                        return;
+                    }
+                    else if (input.Trim().ToLower() == "нет")
+                    {
+                        chosen_account.AddOperation(amount_op, date_op, chosen_category);
+
+                        Console.Clear();
+                        System.Console.WriteLine("\nОперация была добавлена! (без описания)");
+                        System.Console.WriteLine($"\nДата операции: {date_op:dd.MM.yyyy}");
+                        System.Console.WriteLine($"Категория: {chosen_category.Name}");
+                        System.Console.WriteLine($"Сумма: {amount_op:F2}\n");
+                        System.Console.WriteLine($"Новый баланс: {chosen_account.Balance:F2}");
+                        return;
+                    }
+                    else
+                    {
+                        System.Console.WriteLine("Нужно дать четкий ответ: да или нет! Попробуйте еще раз!");
+                    }
+                }
+            }
+            catch (ArgumentException ex)
+            {
+                System.Console.WriteLine($"Ошибка: {ex.Message}");
+            }
+            catch (InvalidOperationException ex)
+            {
+                System.Console.WriteLine($"Ошибка: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                System.Console.WriteLine($"Общая ошибка: {ex.Message}");
+            }
         }
+
+        private static BankAccount? SelectAccount()
+        {
+            ShowMyAccounts();
+            if (bankAccounts.Count == 0)
+            {
+                return null;
+            }
+
+            while (true)
+            {
+                System.Console.Write("Введите ID счета для выбора аккаунта (0 - назад): ");
+                var cmd_id_inside = Console.ReadLine();
+                if (string.IsNullOrWhiteSpace(cmd_id_inside))
+                {
+                    System.Console.WriteLine("Вы ничего не ввели! Попробуйте еще раз!");
+                }
+                else if (cmd_id_inside.Trim() == "0")
+                {
+                    return null;
+                }
+                else if (!Guid.TryParse(cmd_id_inside.Trim(), out var id))
+                {
+                    System.Console.WriteLine("Неверный формат ID (возможно, произошло неточное копирование). Попробуйте еще раз");
+                }
+                else
+                {
+                    foreach (var el in bankAccounts)
+                    {
+                        if (el.AccountId == id)
+                        {
+                            Console.Clear();
+                            System.Console.WriteLine("Счет найден!\n");
+                            System.Console.WriteLine($"Имя: {el.Name}");
+                            System.Console.WriteLine($"Баланс: {el.Balance}\n");
+                            return el;
+                        }
+                    }
+                    System.Console.WriteLine("Счета с таким ID нет! Попробуйте еще раз!");
+                }
+            }
+        }
+
+        private static Category? SelectCategory()
+        {
+            if (categories.Count == 0)
+            {
+                System.Console.WriteLine("Категории отсутствуют");
+                return null;
+            }
+            System.Console.WriteLine("Доступные категории: ");
+            foreach (var el in categories)
+            {
+                System.Console.WriteLine($"Название: {el.Name}, Тип: {el.Type}");
+            }
+
+            while (true)
+            {
+                System.Console.Write("\nВведите название категории операции (0 - назад): ");
+                var input_string = Console.ReadLine();
+
+                if (string.IsNullOrWhiteSpace(input_string))
+                {
+                    System.Console.WriteLine("\nВы ничего не ввели! Попробуйте еще раз!");
+                }
+                else if (input_string.Trim() == "0")
+                {
+                    return null;
+                }
+                else
+                {
+                    foreach (var el in categories)
+                    {
+                        if (el.Name.ToLower() == input_string.Trim().ToLower())
+                        {
+                            Console.Clear();
+                            System.Console.WriteLine("\nКатегория найдена и выбрана!");
+                            System.Console.WriteLine($"\nНазвание: {el.Name}");
+                            System.Console.WriteLine($"ID категории: {el.CategoryId}");
+                            return el;
+                        }
+                    }
+                    System.Console.WriteLine("\nТакой категории не существует! Попробуйте еще раз!");
+                }
+            }
+        }
+
 
         private static void CreateAccount()
         {
@@ -127,23 +342,23 @@ namespace HseBankSpace
             string input;
             while (true)
             {
-                System.Console.Write("Введите свое имя: ");
+                System.Console.Write("\nВведите свое имя: ");
                 var input_inside = Console.ReadLine();
                 if (string.IsNullOrWhiteSpace(input_inside))
                 {
-                    System.Console.WriteLine("Вы ничего не ввели! Попробуйте еще раз!");
+                    System.Console.WriteLine("\nВы ничего не ввели! Попробуйте еще раз!");
                 }
                 else if (bankAccounts.Select(account => account.Name.ToLower()).Contains(input_inside.Trim().ToLower()))
                 {
-                    System.Console.WriteLine("Счет с таким именем уже есть! Попробуйте еще раз!");
+                    System.Console.WriteLine("\nСчет с таким именем уже есть! Попробуйте еще раз!");
                 }
-                else if (input_inside[0] != char.ToUpper(input_inside[0]))
+                else if (input_inside.Trim()[0] != char.ToUpper(input_inside.Trim()[0]))
                 {
-                    System.Console.WriteLine("Имя должно быть с большой буквы! Попробуйте еще раз!");
+                    System.Console.WriteLine("\nИмя должно быть с большой буквы! Попробуйте еще раз!");
                 }
                 else if (!input_inside.Any(char.IsLetter))
                 {
-                    System.Console.WriteLine("В имени счета должна быть хотя бы одна буква! Попробуйте еще раз!");
+                    System.Console.WriteLine("\nВ имени счета должна быть хотя бы одна буква! Попробуйте еще раз!");
                 }
                 else
                 {
@@ -151,7 +366,7 @@ namespace HseBankSpace
                     break;
                 }
             }
-            
+
             Guid account_id = Guid.NewGuid();
             BankAccount account = new BankAccount { AccountId = account_id, Name = input }; // Стартовый баланс = 0
             bankAccounts.Add(account);
