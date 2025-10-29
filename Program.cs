@@ -1,5 +1,4 @@
 ﻿using System.Globalization;
-using System.Security.Cryptography.X509Certificates;
 using BankAccountSpace;
 using CategorySpace;
 using OperationSpace;
@@ -738,7 +737,7 @@ namespace HseBankSpace
                             Console.Clear();
                             System.Console.WriteLine("Счет найден!\n");
                             System.Console.WriteLine($"Имя: {el.Name}");
-                            System.Console.WriteLine($"Баланс: {el.Balance}\n");
+                            System.Console.WriteLine($"Баланс: {el.Balance:F2}\n");
                             return el;
                         }
                     }
