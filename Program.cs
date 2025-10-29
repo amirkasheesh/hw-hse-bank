@@ -89,7 +89,7 @@ namespace HseBankSpace
                 System.Console.WriteLine($"Счет №{i + 1}:");
                 System.Console.WriteLine($"Имя: {bankAccounts[i].Name}");
                 System.Console.WriteLine($"Уникальный идентификатор: {bankAccounts[i].AccountId}");
-                System.Console.WriteLine($"Баланс: {bankAccounts[i].Balance}");
+                System.Console.WriteLine($"Баланс: {bankAccounts[i].Balance:F2}");
                 System.Console.WriteLine();
                 ++res;
             }
@@ -103,7 +103,241 @@ namespace HseBankSpace
 
         private static void GiveSummaryByCategoryForPeriod()
         {
-            throw new NotImplementedException();
+            Console.Clear();
+            System.Console.WriteLine("Давайте выберем временной промежуток для сводки операций по категориям!");
+
+            DateTime data_start;
+            while (true)
+            {
+                System.Console.Write("\nВведите дату начала (dd.MM.yyyy) / (0 - назад): ");
+                string? input_start = Console.ReadLine();
+                if (string.IsNullOrWhiteSpace(input_start))
+                {
+                    System.Console.WriteLine("\nВы ввели пустую строку! Попробуйте еще раз!");
+                }
+                else if (input_start.Trim() == "0")
+                {
+                    return;
+                }
+                else if (!DateTime.TryParseExact(input_start.Trim(), "dd.MM.yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out var data_start_temp))
+                {
+                    System.Console.WriteLine("\nВы ввели дату в неправильном формате!");
+                }
+                else
+                {
+                    data_start = data_start_temp;
+                    break;
+                }
+
+            }
+
+            DateTime data_end;
+            while (true)
+            {
+                System.Console.Write("\nВведите дату конца (будет включительно) / (dd.MM.yyyy) / (0 - назад): ");
+                string? input_end = Console.ReadLine();
+                if (string.IsNullOrWhiteSpace(input_end))
+                {
+                    System.Console.WriteLine("\nВы ввели пустую строку! Попробуйте еще раз!");
+                }
+                else if (input_end.Trim() == "0")
+                {
+                    return;
+                }
+                else if (!DateTime.TryParseExact(input_end.Trim(), "dd.MM.yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out var data_end_temp))
+                {
+                    System.Console.WriteLine("\nВы ввели дату в неправильном формате!");
+                }
+                else
+                {
+                    data_end = data_end_temp;
+                    break;
+                }
+            }
+
+            if (data_start > data_end)
+            {
+                System.Console.WriteLine("\nДата начала НЕ может превышать даты конца! \nСделайте сводки заново с правильным интервалом!");
+                return;
+            }
+
+            Console.Clear();
+            BankAccount? chosen_account = SelectAccount();
+            if (chosen_account == null)
+            {
+                return;
+            }
+            var result = chosen_account.GetInfByCategoryForPeriod(data_start, data_end);
+
+            if (result.Count == 0)
+            {
+                System.Console.WriteLine("За данный период не было ни одной операции! (Вероятно, вы выбрали не тот интервал)");
+                return;
+            }
+
+            Console.Clear();
+            System.Console.WriteLine($"Сводка операций по категориям за период с {data_start:dd.MM.yyyy} по {data_end:dd.MM.yyyy}:");
+
+            bool flag = true;
+
+            decimal sum_income = 0;
+            decimal sum_expense = 0;
+            int count = 0;
+            if (result.Count == 1)
+            {
+                string name_cat = "";
+                foreach (var el in categories)
+                {
+                    if (el.CategoryId == result[0].CategoryId)
+                    {
+                        name_cat = el.Name;
+                        break;
+                    }
+                }
+                if (string.IsNullOrEmpty(name_cat))
+                {
+                    System.Console.WriteLine("Категория не нашлась!");
+                    return;
+                }
+                System.Console.WriteLine($"\n\nКатегория {name_cat}:");
+
+                System.Console.WriteLine($"\nТип: {result[0].Type};");
+                System.Console.WriteLine($"Дата: {result[0].Date:dd.MM.yyyy};");
+                System.Console.WriteLine($"Сумма: {result[0].Amount:F2};");
+                System.Console.WriteLine($"Описание: {result[0].Description ?? "Описания нет"};");
+                if (result[0].Type == OperationType.Income)
+                {
+                    sum_income += result[0].Amount;
+                } else
+                {
+                    sum_expense += result[0].Amount;
+                }
+                System.Console.WriteLine($"Итого по категории: сумма доходов = {sum_income}; сумма расходов = {sum_expense}; кол-во = {1}");
+                return;
+            }
+
+            for (int i = 0; i < result.Count - 1; i++)
+            {
+                if (flag)
+                {
+                    flag = false;
+                    string name_cat = "";
+                    foreach (var el in categories)
+                    {
+                        if (el.CategoryId == result[i].CategoryId)
+                        {
+                            name_cat = el.Name;
+                            break;
+                        }
+                    }
+                    if (string.IsNullOrEmpty(name_cat))
+                    {
+                        System.Console.WriteLine("Категория не нашлась!");
+                        return;
+                    }
+                    System.Console.WriteLine($"\n\nКатегория {name_cat}:");
+                }
+
+                if (result[i].CategoryId == result[i + 1].CategoryId)
+                {
+                    System.Console.WriteLine($"\nТип: {result[i].Type};");
+                    System.Console.WriteLine($"Дата: {result[i].Date:dd.MM.yyyy};");
+                    System.Console.WriteLine($"Сумма: {result[i].Amount:F2};");
+                    System.Console.WriteLine($"Описание: {result[i].Description ?? "Описания нет"};");
+                    ++count;
+                    if (result[i].Type == OperationType.Income)
+                    {
+                        sum_income += result[i].Amount;
+                    }
+                    else
+                    {
+                        sum_expense += result[i].Amount;
+                    }
+
+                    if (i == result.Count - 2)
+                    {
+                        ++i;
+                        System.Console.WriteLine($"\nТип: {result[i].Type};");
+                        System.Console.WriteLine($"Дата: {result[i].Date:dd.MM.yyyy};");
+                        System.Console.WriteLine($"Сумма: {result[i].Amount:F2};");
+                        System.Console.WriteLine($"Описание: {result[i].Description ?? "Описания нет"};");
+                        ++count;
+                        if (result[i].Type == OperationType.Income)
+                        {
+                            sum_income += result[i].Amount;
+                        }
+                        else
+                        {
+                            sum_expense += result[i].Amount;
+                        }
+                        System.Console.WriteLine($"Итого по категории: сумма доходов = {sum_income}; сумма расходов = {sum_expense}; кол-во = {count}");
+                        sum_expense = 0;
+                        sum_income = 0;
+                        count = 0;
+                    }
+                }
+                else
+                {
+                    System.Console.WriteLine($"\nТип: {result[i].Type};");
+                    System.Console.WriteLine($"Дата: {result[i].Date:dd.MM.yyyy};");
+                    System.Console.WriteLine($"Сумма: {result[i].Amount:F2};");
+                    System.Console.WriteLine($"Описание: {result[i].Description ?? "Описания нет"};");
+                    ++count;
+                    if (result[i].Type == OperationType.Income)
+                    {
+                        sum_income += result[i].Amount;
+                    }
+                    else
+                    {
+                        sum_expense += result[i].Amount;
+                    }
+                    System.Console.WriteLine($"Итого по категории: сумма доходов = {sum_income}; сумма расходов = {sum_expense}; кол-во = {count}");
+                    sum_expense = 0;
+                    sum_income = 0;
+                    count = 0;
+
+                    flag = true;
+                    if (i == result.Count - 2)
+                    {
+                        ++i;
+                        string name_cat = "";
+                        foreach (var el in categories)
+                        {
+                            if (el.CategoryId == result[i].CategoryId)
+                            {
+                                name_cat = el.Name;
+                                break;
+                            }
+                        }
+                        if (string.IsNullOrEmpty(name_cat))
+                        {
+                            System.Console.WriteLine("Категория не нашлась!");
+                            return;
+                        }
+                        System.Console.WriteLine($"\n\nКатегория {name_cat}:");
+                        
+                        System.Console.WriteLine($"\nТип: {result[i].Type};");
+                        System.Console.WriteLine($"Дата: {result[i].Date:dd.MM.yyyy};");
+                        System.Console.WriteLine($"Сумма: {result[i].Amount:F2};");
+                        System.Console.WriteLine($"Описание: {result[i].Description ?? "Описания нет"};");
+                        ++count;
+
+                        if (result[i].Type == OperationType.Income)
+                        {
+                            sum_income += result[i].Amount;
+                        }
+                        else
+                        {
+                            sum_expense += result[i].Amount;
+                        }
+                        System.Console.WriteLine($"Итого по категории: сумма доходов = {sum_income}; сумма расходов = {sum_expense}; кол-во = {count}");
+                        sum_expense = 0;
+                        sum_income = 0;
+                        count = 0;
+                    }
+                }
+            }
+            return;
         }
 
         private static void ResultsByPeriod()
@@ -180,7 +414,7 @@ namespace HseBankSpace
                 return;
             }
 
-            System.Console.WriteLine($"Итоги операций за период с {data_start:dd.MM.yyyy} по {data_end:dd.MM.yyyy}\n");
+            System.Console.WriteLine($"Итоги операций за период с {data_start:dd.MM.yyyy} по {data_end:dd.MM.yyyy}:\n");
 
             System.Console.WriteLine($"Общий доход: {result.income:F2}");
             System.Console.WriteLine($"Общий расход: {result.expense:F2}");
