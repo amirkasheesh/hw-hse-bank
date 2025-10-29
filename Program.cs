@@ -1,4 +1,5 @@
 ﻿using System.Globalization;
+using System.Security.Cryptography.X509Certificates;
 using BankAccountSpace;
 using CategorySpace;
 using OperationSpace;
@@ -112,7 +113,104 @@ namespace HseBankSpace
 
         private static void GiveExtractByPeriod()
         {
-            throw new NotImplementedException();
+            Console.Clear();
+            System.Console.WriteLine("Давайте выберем временной промежуток для выписки!");
+
+            DateTime data_start;
+            while (true)
+            {
+                System.Console.Write("\nВведите дату начала (dd.MM.yyyy) / (0 - назад): ");
+                string? input_start = Console.ReadLine();
+                if (string.IsNullOrWhiteSpace(input_start))
+                {
+                    System.Console.WriteLine("\nВы ввели пустую строку! Попробуйте еще раз!");
+                }
+                else if (input_start.Trim() == "0")
+                {
+                    return;
+                }
+                else if (!DateTime.TryParseExact(input_start.Trim(), "dd.MM.yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out var data_start_temp))
+                {
+                    System.Console.WriteLine("\nВы ввели дату в неправильном формате!");
+                }
+                else
+                {
+                    data_start = data_start_temp;
+                    break;
+                }
+            }
+
+            DateTime data_end;
+            while (true)
+            {
+                System.Console.Write("\nВведите дату конца (будет включительно) / (dd.MM.yyyy) / (0 - назад): ");
+                string? input_end = Console.ReadLine();
+                if (string.IsNullOrWhiteSpace(input_end))
+                {
+                    System.Console.WriteLine("\nВы ввели пустую строку! Попробуйте еще раз!");
+                }
+                else if (input_end.Trim() == "0")
+                {
+                    return;
+                }
+                else if (!DateTime.TryParseExact(input_end.Trim(), "dd.MM.yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out var data_end_temp))
+                {
+                    System.Console.WriteLine("\nВы ввели дату в неправильном формате!");
+                }
+                else
+                {
+                    data_end = data_end_temp;
+                    break;
+                }
+            }
+
+            if (data_start > data_end)
+            {
+                System.Console.WriteLine("\nДата начала НЕ может превышать даты конца! \nСделайте выписку заново с правильным интервалом!");
+                return;
+            }
+
+            Console.Clear();
+            BankAccount? chosen_account = SelectAccount();
+            if (chosen_account == null)
+            {
+                return;
+            }
+            var result = chosen_account.ShowOperationsByDate(data_start, data_end);
+
+            if (result.Count == 0)
+            {
+                System.Console.WriteLine("За данный период не было ни одной операции! (Вероятно, вы выбрали не тот интервал)");
+                return;
+            }
+
+            Console.Clear();
+            System.Console.WriteLine($"Выписка по операциям аккаунта с именем {chosen_account.Name}:");
+            System.Console.WriteLine($"Период с {data_start:dd.MM.yyyy} по {data_end:dd.MM.yyyy}");
+
+            int count = 0;
+            for (int i = 0; i < result.Count; ++i)
+            {
+                System.Console.WriteLine($"\nОперация №{i + 1}:");
+                System.Console.WriteLine($"ID операции: {result[i].OperationId};");
+                System.Console.WriteLine($"Дата: {result[i].Date:dd.MM.yyyy};");
+                System.Console.WriteLine($"Тип операции: {result[i].Type};");
+                string categ = "Категория не найдена";
+                foreach (var el in categories)
+                {
+                    if (el.CategoryId == result[i].CategoryId)
+                    {
+                        categ = el.Name;
+                        break;
+                    }
+                }
+                System.Console.WriteLine($"Категория операции: {categ};");
+                System.Console.WriteLine($"Сумма операции: {result[i].Amount:F2};");
+                System.Console.WriteLine($"Описание: {result[i].Description ?? "Пусто"}.");
+                count++;
+            }
+            System.Console.WriteLine($"\nИтого операций: {count}");
+            return;
         }
 
         private static void AddSomeOperation()
