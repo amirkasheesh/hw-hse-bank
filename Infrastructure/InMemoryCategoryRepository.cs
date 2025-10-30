@@ -5,7 +5,7 @@ namespace Infrastructure
 {
     public class InMemoryCategoryRepository : ICategoryRepository
     {
-        private readonly List<Category> _categories = new List<Category>
+        private List<Category> _categories = new List<Category>
         {
             new Category {CategoryId = Guid.NewGuid(), Name = "Зарплата", Type = OperationType.Income },
             new Category {CategoryId = Guid.NewGuid(), Name = "Кэшбек", Type = OperationType.Income},
@@ -49,6 +49,12 @@ namespace Infrastructure
         public List<Category> GetAllCategories()
         {
             return _categories.ToList();
+        }
+        public void Clear() => _categories.Clear();
+
+        public void AddNewCategory(Category category)
+        {
+            _categories.Add(category);
         }
     }
 }

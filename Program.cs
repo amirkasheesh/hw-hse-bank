@@ -3,7 +3,10 @@ using BankAccountSpace;
 using CategorySpace;
 using Infrastructure;
 using Interfaces;
+using Application;
 using Microsoft.Extensions.DependencyInjection;
+using System.IO;
+using System.Runtime.InteropServices;
 using OperationSpace;
 
 namespace HseBankSpace
@@ -13,16 +16,26 @@ namespace HseBankSpace
         private static IAccountRepository? _accountRepo;
         private static ICategoryRepository? _categoryRepo;
 
+        private static IDataImporter? importer;
+        private static DataRestoreService? restorer;
+
         public static void Main()
         {
             IServiceCollection services = new ServiceCollection();
             services.AddSingleton<IAccountRepository, InMemoryAccountRepository>();
             services.AddSingleton<ICategoryRepository, InMemoryCategoryRepository>();
+            services.AddSingleton<IDataImporter, JsonDataImporter>();
+            services.AddSingleton<DataRestoreService>();
 
             var serviceProvider = services.BuildServiceProvider();
 
             _accountRepo = serviceProvider.GetService<IAccountRepository>();
-            _categoryRepo= serviceProvider.GetService<ICategoryRepository>();
+            _categoryRepo = serviceProvider.GetService<ICategoryRepository>();
+
+            importer = serviceProvider.GetService<IDataImporter>();
+            restorer = serviceProvider.GetService<DataRestoreService>();
+            
+
 
             Console.OutputEncoding = System.Text.Encoding.UTF8;
 
@@ -36,7 +49,9 @@ namespace HseBankSpace
                 Console.WriteLine("4) Итоги (доход/расход/итог) за период;");
                 Console.WriteLine("5) Сводка по категориям за период;");
                 Console.WriteLine("6) Самопроверка баланса. Пересчитать из операций;");
-                System.Console.WriteLine("7) Посмотреть мои счета;");
+                Console.WriteLine("7) Посмотреть мои счета;");
+                Console.WriteLine("8) Экспорт данных;");
+                Console.WriteLine("9) Импорт данных;");
                 Console.WriteLine("0) Выход.");
                 Console.Write("Ваш ответ: ");
 
@@ -67,6 +82,12 @@ namespace HseBankSpace
                         Console.Clear();
                         ShowMyAccounts();
                         break;
+                    case "8":
+                        ExportData();
+                        break;
+                    case "9":
+                        ImportData();
+                        break;
                     case "0":
                         return;
                     default:
@@ -75,6 +96,200 @@ namespace HseBankSpace
                 }
             }
         }
+
+        private static void ImportData()
+        {
+            if (importer == null || restorer == null)
+            {
+                System.Console.WriteLine("Произошла ошибка!");
+                return;
+            }
+
+            Console.Clear();
+            System.Console.WriteLine("Давайте импортируем файлы!\n");
+            
+            System.Console.Write("Выберите, откуда будем экспортировать (1 - Json) (0 - назад): ");
+            var cmd = Console.ReadLine();
+
+            while (true)
+            {
+                switch (cmd)
+                {
+                    case "0":
+                        return;
+                    case "1":
+                        var path = FilePathHelper();
+                        if (path == null)
+                        {
+                            System.Console.WriteLine("Произошла ошибка c путем!");
+                            return;
+                        }
+                        try
+                        {
+                            var snapshot = importer.Import(path);
+                            restorer.RestoreFromSnapshot(snapshot);
+
+                            Console.WriteLine("\nИмпорт завершён!");
+                            return;
+                        }
+                        catch (UnauthorizedAccessException)
+                        {
+                            Console.WriteLine("\nВы указали только папку или у вас нет прав. Введите путь вида: /.../docs/data.json");
+                            return;
+                        }
+                        catch (FileNotFoundException)
+                        {
+                            System.Console.WriteLine("Файл не был найден!");
+                            return;
+                        }
+                        catch (System.Text.Json.JsonException)
+                        {
+                            System.Console.WriteLine("Json-файл либо поломан, либо имеет неподходящую структуру!");
+                            return;
+                        }
+                    default:
+                        System.Console.WriteLine("Неизвестная команда!");
+                        return;
+                }
+            }
+        }
+
+        private static void ExportData()
+        {
+            if (_categoryRepo == null || _accountRepo == null)
+            {
+                System.Console.WriteLine("Произошла ошибка!");
+                return;
+            }
+
+            var categories = _categoryRepo.GetAllCategories();
+            var bankAccounts = _accountRepo.GetAllAccounts();
+
+            BankDataSnapshot snapshot = new BankDataSnapshot();
+
+            foreach (var el in bankAccounts)
+            {
+                snapshot.Accounts.Add(
+                    new AccountWithOperations
+                    {
+                        AccountId = el.AccountId,
+                        Name = el.Name,
+                        Balance = el.Balance,
+                        Operations = el.ShowOperationsByDate(DateTime.MinValue, DateTime.MaxValue)
+                    }
+                );
+            }
+            snapshot.Categories = categories;
+
+            Console.Clear();
+            System.Console.WriteLine("Давайте экспортируем данные!\n");
+            System.Console.Write("Выберите, куда будем экспортировать (1 - Json) (0 - назад): ");
+            var cmd = Console.ReadLine();
+
+            while (true)
+            {
+                switch (cmd)
+                {
+                    case "0":
+                        return;
+                    case "1":
+                        var filePath = FilePathHelper();
+                        if (filePath == null)
+                        {
+                            return;
+                        }
+
+                        JsonDataExporter exporter = new JsonDataExporter();
+                        try
+                        {
+                            exporter.Export(snapshot, filePath);
+                        }
+                        catch (UnauthorizedAccessException)
+                        {
+                            Console.WriteLine("\nВы указали только папку или у вас нет прав. Введите путь вида: /.../docs/data.json");
+                            return;
+                        }
+                        catch (FileNotFoundException)
+                        {
+                            System.Console.WriteLine("Файл не был найден!");
+                            return;
+                        }
+                        catch (System.Text.Json.JsonException)
+                        {
+                            System.Console.WriteLine("Json-файл либо поломан, либо имеет неподходящую структуру!");
+                            return;
+                        }
+                        System.Console.WriteLine("\nЭкспорт завершен!");
+                        return;
+                    default:
+                        System.Console.WriteLine("Неизвестная команда!");
+                        return;
+                }
+            }
+        }
+
+        private static string? FilePathHelper()
+
+        {
+            Console.Clear();
+            Console.Write("Введите путь к файлу (пример: /Users/amir/.../data.json): ");
+            var raw = Console.ReadLine();
+            if (string.IsNullOrWhiteSpace(raw))
+            {
+                Console.WriteLine("Ничего не введено!");
+                return null;
+            }
+
+            var path = NormalizeUserPath(raw.Trim());
+
+            var dir = Path.GetDirectoryName(path);
+            if (string.IsNullOrEmpty(dir) || !Directory.Exists(dir))
+            {
+                Console.WriteLine("Такой папки не существует! Сначала укажи существующую папку");
+                return null;
+            }
+
+            return path;
+        }
+        
+        public static string NormalizeUserPath(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+            {
+                throw new ArgumentException("Путь пуст");
+            }
+
+            var path = input.Trim().Trim('"', '\'');
+
+            if (path == "~" || path.StartsWith("~/"))
+            {
+                var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+                path = Path.Join(home, path.Substring(1));
+            }
+
+            path = Environment.ExpandEnvironmentVariables(path);
+
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                if (path.Contains('\\') && !path.Contains('/'))
+                    path = path.Replace('\\', '/');
+            }
+
+            var invalid = Path.GetInvalidPathChars();
+            if (path.Any(ch => invalid.Contains(ch)))
+            {
+                throw new ArgumentException("Путь содержит недопустимые символы!");
+            }
+
+            path = Path.GetFullPath(path);
+
+            path = Path.TrimEndingDirectorySeparator(path);
+
+            return path;
+        }
+
+        public static bool FileOrDirectoryExists(string normalizedPath) =>
+            File.Exists(normalizedPath) || Directory.Exists(normalizedPath);
 
         private static void ShowMyAccounts()
         {

@@ -7,5 +7,7 @@ namespace Interfaces
         public List<Category> GetAllCategories();
         public Category? FindCategoryByName(string? Name);
         public Category? FindCategoryById(Guid id);
+        public void AddNewCategory(Category category);
+        public void Clear();
     }
 }

@@ -14,7 +14,7 @@ namespace BankAccountSpace
             {
                 return _balance;
             }
-            private set
+            set
             {
                 _balance = value;
             }

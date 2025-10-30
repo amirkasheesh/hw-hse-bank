@@ -38,8 +38,11 @@ namespace Infrastructure
         }
 
         public List<BankAccount> GetAllAccounts()
+
         {
             return _bankAccounts.ToList();
         }
+        public void Clear() => _bankAccounts.Clear();
+
     }
 }
