@@ -30,7 +30,7 @@ namespace Application
                 {
                     AccountId = accDto.AccountId,
                     Name = accDto.Name,
-                    Balance = accDto.Balance
+                    Balance = 0
                 };
 
                 foreach (var opDto in accDto.Operations)
@@ -44,6 +44,7 @@ namespace Application
                     account.AddOperation(opDto.Amount, opDto.Date, cat, opDto.Description ?? "Описания нет");
                 }
 
+                account.Balance = accDto.Balance;
                 _accounts.AddNewAccount(account);
             }
         }
