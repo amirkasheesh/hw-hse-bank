@@ -1,6 +1,8 @@
 ﻿using System.Globalization;
 using BankAccountSpace;
 using CategorySpace;
+using Infrastructure;
+using Interfaces;
 using Microsoft.Extensions.DependencyInjection;
 using OperationSpace;
 
@@ -8,21 +10,20 @@ namespace HseBankSpace
 {
     internal class Program
     {
-        internal static List<BankAccount> bankAccounts = new List<BankAccount>();
-
-        internal static readonly List<Category> categories = new List<Category>
-        {
-            new Category {CategoryId = Guid.NewGuid(), Name = "Зарплата", Type = OperationType.Income },
-            new Category {CategoryId = Guid.NewGuid(), Name = "Кэшбек", Type = OperationType.Income},
-
-            new Category {CategoryId = Guid.NewGuid(), Name = "Рестораны/Кафе", Type = OperationType.Expense},
-            new Category {CategoryId = Guid.NewGuid(), Name = "Транспорт", Type = OperationType.Expense},
-            new Category {CategoryId = Guid.NewGuid(), Name = "Здоровье", Type = OperationType.Expense},
-            new Category {CategoryId = Guid.NewGuid(), Name = "Развлечения", Type = OperationType.Expense}
-        };
+        private static IAccountRepository? _accountRepo;
+        private static ICategoryRepository? _categoryRepo;
 
         public static void Main()
         {
+            IServiceCollection services = new ServiceCollection();
+            services.AddSingleton<IAccountRepository, InMemoryAccountRepository>();
+            services.AddSingleton<ICategoryRepository, InMemoryCategoryRepository>();
+
+            var serviceProvider = services.BuildServiceProvider();
+
+            _accountRepo = serviceProvider.GetService<IAccountRepository>();
+            _categoryRepo= serviceProvider.GetService<ICategoryRepository>();
+
             Console.OutputEncoding = System.Text.Encoding.UTF8;
 
             while (true)
@@ -77,6 +78,12 @@ namespace HseBankSpace
 
         private static void ShowMyAccounts()
         {
+            if (_accountRepo == null)
+            {
+                return;
+            }
+            var bankAccounts = _accountRepo.GetAllAccounts();
+
             if (bankAccounts.Count == 0)
             {
                 System.Console.WriteLine("Счетов еще нет! Создайте хотя бы один!");
@@ -227,6 +234,11 @@ namespace HseBankSpace
             Console.Clear();
             System.Console.WriteLine($"Сводка операций по категориям за период с {data_start:dd.MM.yyyy} по {data_end:dd.MM.yyyy}:");
 
+            if (_categoryRepo == null)
+            {
+                return;
+            }
+
             bool flag = true;
 
             decimal sum_income = 0;
@@ -235,14 +247,13 @@ namespace HseBankSpace
             if (result.Count == 1)
             {
                 string name_cat = "";
-                foreach (var el in categories)
+                var cat = _categoryRepo.FindCategoryById(result[0].CategoryId);
+                if (cat == null)
                 {
-                    if (el.CategoryId == result[0].CategoryId)
-                    {
-                        name_cat = el.Name;
-                        break;
-                    }
+                    return;
                 }
+
+                name_cat = cat.Name;
                 if (string.IsNullOrEmpty(name_cat))
                 {
                     System.Console.WriteLine("Категория не нашлась!");
@@ -257,7 +268,8 @@ namespace HseBankSpace
                 if (result[0].Type == OperationType.Income)
                 {
                     sum_income += result[0].Amount;
-                } else
+                }
+                else
                 {
                     sum_expense += result[0].Amount;
                 }
@@ -271,14 +283,13 @@ namespace HseBankSpace
                 {
                     flag = false;
                     string name_cat = "";
-                    foreach (var el in categories)
+                    var cat = _categoryRepo.FindCategoryById(result[i].CategoryId);
+                    if (cat == null)
                     {
-                        if (el.CategoryId == result[i].CategoryId)
-                        {
-                            name_cat = el.Name;
-                            break;
-                        }
+                        return;
                     }
+
+                    name_cat = cat.Name;
                     if (string.IsNullOrEmpty(name_cat))
                     {
                         System.Console.WriteLine("Категория не нашлась!");
@@ -350,21 +361,20 @@ namespace HseBankSpace
                     {
                         ++i;
                         string name_cat = "";
-                        foreach (var el in categories)
+                        var cat = _categoryRepo.FindCategoryById(result[i].CategoryId);
+                        if (cat == null)
                         {
-                            if (el.CategoryId == result[i].CategoryId)
-                            {
-                                name_cat = el.Name;
-                                break;
-                            }
+                            return;
                         }
+
+                        name_cat = cat.Name;
                         if (string.IsNullOrEmpty(name_cat))
                         {
                             System.Console.WriteLine("Категория не нашлась!");
                             return;
                         }
                         System.Console.WriteLine($"\n\nКатегория {name_cat}:");
-                        
+
                         System.Console.WriteLine($"\nТип: {result[i].Type};");
                         System.Console.WriteLine($"Дата: {result[i].Date:dd.MM.yyyy};");
                         System.Console.WriteLine($"Сумма: {result[i].Amount:F2};");
@@ -549,22 +559,26 @@ namespace HseBankSpace
             System.Console.WriteLine($"Период с {data_start:dd.MM.yyyy} по {data_end:dd.MM.yyyy}");
 
             int count = 0;
+
+            if (_categoryRepo == null)
+            {
+                return;
+            }
+
             for (int i = 0; i < result.Count; ++i)
             {
                 System.Console.WriteLine($"\nОперация №{i + 1}:");
                 System.Console.WriteLine($"ID операции: {result[i].OperationId};");
                 System.Console.WriteLine($"Дата: {result[i].Date:dd.MM.yyyy};");
                 System.Console.WriteLine($"Тип операции: {result[i].Type};");
-                string categ = "Категория не найдена";
-                foreach (var el in categories)
+                string categ_name = "Категория не найдена";
+
+                var cat = _categoryRepo.FindCategoryById(result[i].CategoryId);
+                if (cat != null)
                 {
-                    if (el.CategoryId == result[i].CategoryId)
-                    {
-                        categ = el.Name;
-                        break;
-                    }
+                    categ_name = cat.Name;
                 }
-                System.Console.WriteLine($"Категория операции: {categ};");
+                System.Console.WriteLine($"Категория операции: {categ_name};");
                 System.Console.WriteLine($"Сумма операции: {result[i].Amount:F2};");
                 System.Console.WriteLine($"Описание: {result[i].Description ?? "Пусто"}.");
                 count++;
@@ -708,6 +722,14 @@ namespace HseBankSpace
         private static BankAccount? SelectAccount()
         {
             ShowMyAccounts();
+
+            if (_accountRepo == null)
+            {
+                return null;
+            }
+
+            var bankAccounts = _accountRepo.GetAllAccounts();
+
             if (bankAccounts.Count == 0)
             {
                 return null;
@@ -749,6 +771,13 @@ namespace HseBankSpace
 
         private static Category? SelectCategory()
         {
+            if (_categoryRepo == null)
+            {
+                return null;
+            }
+
+            var categories = _categoryRepo.GetAllCategories();
+
             if (categories.Count == 0)
             {
                 System.Console.WriteLine("Категории отсутствуют");
@@ -775,16 +804,14 @@ namespace HseBankSpace
                 }
                 else
                 {
-                    foreach (var el in categories)
+                    var result = _categoryRepo.FindCategoryByName(input_string);
+                    if (result != null)
                     {
-                        if (el.Name.ToLower() == input_string.Trim().ToLower())
-                        {
-                            Console.Clear();
-                            System.Console.WriteLine("\nКатегория найдена и выбрана!");
-                            System.Console.WriteLine($"\nНазвание: {el.Name}");
-                            System.Console.WriteLine($"ID категории: {el.CategoryId}");
-                            return el;
-                        }
+                        Console.Clear();
+                        System.Console.WriteLine("\nКатегория найдена и выбрана!");
+                        System.Console.WriteLine($"\nНазвание: {result.Name}");
+                        System.Console.WriteLine($"ID категории: {result.CategoryId}");
+                        return result;
                     }
                     System.Console.WriteLine("\nТакой категории не существует! Попробуйте еще раз!");
                 }
@@ -797,6 +824,11 @@ namespace HseBankSpace
             Console.Clear();
             System.Console.WriteLine("Давайте создадим счет!");
 
+            if (_accountRepo == null)
+            {
+                return;
+            }
+            var bankAccounts = _accountRepo.GetAllAccounts();
             string input;
             while (true)
             {
@@ -806,7 +838,7 @@ namespace HseBankSpace
                 {
                     System.Console.WriteLine("\nВы ничего не ввели! Попробуйте еще раз!");
                 }
-                else if (bankAccounts.Select(account => account.Name.ToLower()).Contains(input_inside.Trim().ToLower()))
+                else if (_accountRepo.CheckIfExistsByName(input_inside))
                 {
                     System.Console.WriteLine("\nСчет с таким именем уже есть! Попробуйте еще раз!");
                 }
@@ -827,7 +859,7 @@ namespace HseBankSpace
 
             Guid account_id = Guid.NewGuid();
             BankAccount account = new BankAccount { AccountId = account_id, Name = input }; // Стартовый баланс = 0
-            bankAccounts.Add(account);
+            _accountRepo.AddNewAccount(account);
 
             System.Console.WriteLine("Ваш аккаунт успешно создан!\n");
             System.Console.WriteLine("Ваши данные:");
