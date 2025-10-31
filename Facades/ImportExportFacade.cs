@@ -10,11 +10,15 @@ namespace Facades
         private IDataImporter? _importer;
         private IDataExporter? _exporter;
         private DataRestoreService? _restorer;
-        public ImportExportFacade(IDataImporter dataImporter, IDataExporter exporter, DataRestoreService dataRestore)
+        private IAccountRepository? accountRepo;
+        private ICategoryRepository? categoryRepo;
+        public ImportExportFacade(IDataImporter dataImporter, IDataExporter exporter, DataRestoreService dataRestore, IAccountRepository accountRepository, ICategoryRepository categoryRepository)
         {
             _importer = dataImporter;
             _restorer = dataRestore;
             _exporter = exporter;
+            accountRepo = accountRepository;
+            categoryRepo = categoryRepository;
         }
 
         public void ImportData()
@@ -74,9 +78,9 @@ namespace Facades
             }
         }
 
-        public void ExportData(ICategoryRepository categoryRepo, IAccountRepository accountRepo)
+        public void ExportData()
         {
-            if (_exporter == null)
+            if (_exporter == null || categoryRepo == null || accountRepo == null)
             {
                 System.Console.WriteLine("Произошла ошибка!");
                 return;

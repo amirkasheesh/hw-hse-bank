@@ -1,13 +1,13 @@
-﻿using System.Globalization;
-using BankAccountSpace;
-using CategorySpace;
-using Infrastructure;
+﻿using Infrastructure;
 using Interfaces;
 using Application;
 using Facades;
 using Microsoft.Extensions.DependencyInjection;
-using System.Runtime.InteropServices;
-using OperationSpace;
+using Commands;
+using AccountCommands;
+using AnalyticsCommands;
+using CategoryCommands;
+using DataCommands;
 
 namespace HseBankSpace
 {
@@ -55,7 +55,24 @@ namespace HseBankSpace
                 System.Console.WriteLine("Произошла ошибка!");
                 return;
             }
-            ImportExportFacade importExportFacade = new ImportExportFacade(importer, exporter, restorer);
+            ImportExportFacade importExportFacade = new ImportExportFacade(importer, exporter, restorer, _accountRepo, _categoryRepo);
+
+            var commands = new Dictionary<string, ICommand>
+            {
+                ["1)"] = new CreateAccountCommand(accountsFacade),
+                ["2)"] = new AddOperationCommand(accountsFacade),
+                ["3)"] = new DeleteAccountCommand(accountsFacade),
+                ["4)"] = new DeleteOperationCommand(accountsFacade),
+                ["5)"] = new ShowExtractCommand(analyticsFacade),
+                ["6)"] = new ShowResultsCommand(analyticsFacade),
+                ["7)"] = new ShowSummaryByCategoryCommand(analyticsFacade),
+                ["8)"] = new CheckBalanceCommand(analyticsFacade),
+                ["9)"] = new AddSomeCategoryCommand(categoriesFacade),
+                ["10)"] = new DeleteCategoryCommand(categoriesFacade),
+                ["11)"] = new ExportDataCommand(importExportFacade),
+                ["12)"] = new ImportDataCommand(importExportFacade)
+            };
+
 
             while (true)
             {
@@ -106,7 +123,7 @@ namespace HseBankSpace
                         shower.ShowMyAccounts(_accountRepo);
                         break;
                     case "8":
-                        importExportFacade.ExportData(_categoryRepo, _accountRepo);
+                        importExportFacade.ExportData();
                         break;
                     case "9":
                         importExportFacade.ImportData();
