@@ -57,94 +57,52 @@ namespace HseBankSpace
             }
             ImportExportFacade importExportFacade = new ImportExportFacade(importer, exporter, restorer, _accountRepo, _categoryRepo);
 
-            var commands = new Dictionary<string, ICommand>
+            var commands = new List<(string key, ICommand cmd)>
             {
-                ["1)"] = new CreateAccountCommand(accountsFacade),
-                ["2)"] = new AddOperationCommand(accountsFacade),
-                ["3)"] = new DeleteAccountCommand(accountsFacade),
-                ["4)"] = new DeleteOperationCommand(accountsFacade),
-                ["5)"] = new ShowExtractCommand(analyticsFacade),
-                ["6)"] = new ShowResultsCommand(analyticsFacade),
-                ["7)"] = new ShowSummaryByCategoryCommand(analyticsFacade),
-                ["8)"] = new CheckBalanceCommand(analyticsFacade),
-                ["9)"] = new AddSomeCategoryCommand(categoriesFacade),
-                ["10)"] = new DeleteCategoryCommand(categoriesFacade),
-                ["11)"] = new ExportDataCommand(importExportFacade),
-                ["12)"] = new ImportDataCommand(importExportFacade)
+                ("1", new CreateAccountCommand(accountsFacade)),
+                ("2", new AddOperationCommand(accountsFacade)),
+                ("3", new DeleteAccountCommand(accountsFacade)),
+                ("4", new DeleteOperationCommand(accountsFacade)),
+                ("5", new ShowExtractCommand(analyticsFacade)),
+                ("6", new ShowResultsCommand(analyticsFacade)),
+                ("7", new ShowSummaryByCategoryCommand(analyticsFacade)),
+                ("8", new CheckBalanceCommand(analyticsFacade)),
+                ("9", new AddSomeCategoryCommand(categoriesFacade)),
+                ("10", new DeleteCategoryCommand(categoriesFacade)),
+                ("11", new ExportDataCommand(importExportFacade)),
+                ("12", new ImportDataCommand(importExportFacade))
             };
+
 
 
             while (true)
             {
-                Console.WriteLine();
-                Console.WriteLine("\tБанк Высшей Школы Экономики");
-                Console.WriteLine("1) Создать счет;");
-                Console.WriteLine("2) Добавить операцию;");
-                Console.WriteLine("3) Выписка за период;");
-                Console.WriteLine("4) Итоги (доход/расход/итог) за период;");
-                Console.WriteLine("5) Сводка по категориям за период;");
-                Console.WriteLine("6) Самопроверка баланса. Пересчитать из операций;");
-                Console.WriteLine("7) Посмотреть мои счета;");
-                Console.WriteLine("8) Экспорт данных;");
-                Console.WriteLine("9) Импорт данных;");
-                Console.WriteLine("10) Добавить/посмотреть категорию;");
-                Console.WriteLine("11) Удалить счет;");
-                Console.WriteLine("12) Удалить операцию у счета;");
-                Console.WriteLine("13) Удалить категорию");
-                Console.WriteLine("0) Выход.");
-                Console.Write("Ваш ответ: ");
+                System.Console.WriteLine("\n\tБанк Высшей Школы Экономики");
+                foreach (var el in commands)
+                {
+                    System.Console.WriteLine($"{el.key}) {el.cmd.Name}");
+                }
+                System.Console.WriteLine("0) Выход.");
 
-                var command = Console.ReadLine();
+                System.Console.Write("\nВаш выбор (0 - 12): ");
+                var command_input = Console.ReadLine();
                 System.Console.WriteLine();
 
-                switch (command)
+                if (string.IsNullOrEmpty(command_input))
                 {
-                    case "1":
-                        accountsFacade.CreateAccount();
-                        break;
-                    case "2":
-                        accountsFacade.AddSomeOperation();
-                        break;
-                    case "3":
-                        analyticsFacade.GiveExtractByPeriod();
-                        break;
-                    case "4":
-                        analyticsFacade.ResultsByPeriod();
-                        break;
-                    case "5":
-                        analyticsFacade.GiveSummaryByCategoryForPeriod();
-                        break;
-                    case "6":
-                        analyticsFacade.CheckYourBalanceFunc();
-                        break;
-                    case "7":
-                        Console.Clear();
-                        ConsoleInputHelper shower = new ConsoleInputHelper();
-                        shower.ShowMyAccounts(_accountRepo);
-                        break;
-                    case "8":
-                        importExportFacade.ExportData();
-                        break;
-                    case "9":
-                        importExportFacade.ImportData();
-                        break;
-                    case "10":
-                        categoriesFacade.AddSomeCategory();
-                        break;
-                    case "11":
-                        accountsFacade.DeleteOneBankAccount();
-                        break;
-                    case "12":
-                        accountsFacade.DeleteOperationInAccount();
-                        break;
-                    case "13":
-                        categoriesFacade.DeleteOneCategory();
-                        break;
-                    case "0":
-                        return;
-                    default:
-                        System.Console.WriteLine("Неизвестная команда!");
-                        break;
+                    System.Console.WriteLine("\nВы ничего не ввели! Попробуйте еще раз!\n");
+                }
+                else if (command_input == "0")
+                {
+                    return;
+                }
+                else if (commands.FirstOrDefault(c => c.key == command_input).cmd != null)
+                {
+                    commands.FirstOrDefault(c => c.key == command_input).cmd.Execute();
+                }
+                else
+                {
+                    System.Console.WriteLine("\nТакой команды нет! Попробуйте еще раз!\n");
                 }
             }
         }
