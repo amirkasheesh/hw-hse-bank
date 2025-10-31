@@ -52,6 +52,10 @@ namespace HseBankSpace
                 Console.WriteLine("7) Посмотреть мои счета;");
                 Console.WriteLine("8) Экспорт данных;");
                 Console.WriteLine("9) Импорт данных;");
+                Console.WriteLine("10) Добавить категорию;");
+                Console.WriteLine("11) Удалить счет;");
+                Console.WriteLine("12) Удалить операцию у счета;");
+                Console.WriteLine("13) Удалить категорию");
                 Console.WriteLine("0) Выход.");
                 Console.Write("Ваш ответ: ");
 
@@ -88,6 +92,18 @@ namespace HseBankSpace
                     case "9":
                         ImportData();
                         break;
+                    case "10":
+                        AddSomeCategory();
+                        break;
+                    case "11":
+                        DeleteOneBankAccount();
+                        break;
+                    case "12":
+                        DeleteOperationInAccount();
+                        break;
+                    case "13":
+                        DeleteOneCategory();
+                        break;
                     case "0":
                         return;
                     default:
@@ -95,6 +111,230 @@ namespace HseBankSpace
                         break;
                 }
             }
+        }
+
+        private static void DeleteOneCategory()
+        {
+            Console.Clear();
+            if (_categoryRepo == null || _accountRepo == null)
+            {
+                System.Console.WriteLine("\nНе получается получить доступ к данным!");
+                return;
+            }
+            System.Console.WriteLine("Давайте удалим категорию!");
+
+            System.Console.WriteLine("Список доступных:");
+
+            var categories = _categoryRepo.GetAllCategories();
+            for (int i = 0; i < categories.Count; ++i)
+            {
+                System.Console.WriteLine($"\nКатегория №{i + 1}");
+                System.Console.WriteLine($"Название: {categories[i].Name};");
+                System.Console.WriteLine($"Id категории: {categories[i].CategoryId};");
+                System.Console.WriteLine($"Тип: {categories[i].Type}.");
+            }
+
+            while (true)
+            {
+                System.Console.Write("\nВведите(скопируйте) ID категории (0 - назад): ");
+                var cmd_id_inside = Console.ReadLine();
+                if (string.IsNullOrWhiteSpace(cmd_id_inside))
+                {
+                    System.Console.WriteLine("Вы ничего не ввели! Попробуйте еще раз!");
+                }
+                else if (cmd_id_inside.Trim() == "0")
+                {
+                    return;
+                }
+                else if (!Guid.TryParse(cmd_id_inside.Trim(), out var id))
+                {
+                    System.Console.WriteLine("Неверный формат ID (возможно, произошло неточное копирование). Попробуйте еще раз");
+                }
+                else
+                {
+                    if (_accountRepo.CheckIfExistsCategoryById(id))
+                    {
+                        System.Console.WriteLine("\nНельзя удалить категорию, которая содержится в операциях! Выберите другую!");
+                        continue;
+                    }
+                    if (_categoryRepo.ClearCategory(id) == 1)
+                    {
+                        System.Console.WriteLine("\nКатегория была удалена!");
+                        return;
+                    }
+                    System.Console.WriteLine("Категории с таким ID нет! Попробуйте еще раз!");
+                }
+            }
+
+        }
+
+        private static void DeleteOperationInAccount()
+        {
+            Console.Clear();
+            System.Console.WriteLine("Давайте удалим выбранную вами операцию из аккаунта:\n");
+
+            var account = SelectAccount();
+            if (account == null || _categoryRepo == null)
+            {
+                return;
+            }
+
+            System.Console.WriteLine("\nВот список операций этого аккаунта:");
+
+            var operations = account.ShowOperationsByDate(DateTime.MinValue, DateTime.MaxValue);
+            for (int i = 0; i < operations.Count; i++)
+            {
+                System.Console.WriteLine($"\nОперация №{i + 1}");
+                System.Console.WriteLine($"Дата: {operations[i].Date};");
+                System.Console.WriteLine($"Категория: {_categoryRepo.FindCategoryById(operations[i].CategoryId)?.Name ?? "Категория не найдена"};");
+                System.Console.WriteLine($"Сумма: {operations[i].Amount};");
+                System.Console.WriteLine($"Id операции: {operations[i].OperationId};");
+                System.Console.WriteLine($"Описание: {operations[i].Description}.");
+            }
+            while (true)
+            {
+                System.Console.Write("\nВведите ID операции для выбранного аккаунта (0 - назад): ");
+                var cmd_id_inside = Console.ReadLine();
+                if (string.IsNullOrWhiteSpace(cmd_id_inside))
+                {
+                    System.Console.WriteLine("Вы ничего не ввели! Попробуйте еще раз!");
+                }
+                else if (cmd_id_inside.Trim() == "0")
+                {
+                    return;
+                }
+                else if (!Guid.TryParse(cmd_id_inside.Trim(), out var id))
+                {
+                    System.Console.WriteLine("Неверный формат ID (возможно, произошло неточное копирование). Попробуйте еще раз");
+                }
+                else
+                {
+                    if (account.ClearOperation(id) == 1)
+                    {
+                        System.Console.WriteLine("\nОперация была удалена!");
+                        return;
+                    }
+                    System.Console.WriteLine("Операции с таким ID нет! Попробуйте еще раз!");
+                }
+            }
+        }
+
+        private static void DeleteOneBankAccount()
+        {
+            Console.Clear();
+            System.Console.WriteLine("Давайте удалим выбранный вами аккаунт!\n");
+
+            var account = SelectAccount();
+            if (account == null || _accountRepo == null)
+            {
+                return;
+            }
+            
+            while (true)
+            {
+                System.Console.Write("\nВы точно хотите удалить счет? (да/нет): ");
+                string? cmd = Console.ReadLine();
+                if (string.IsNullOrWhiteSpace(cmd))
+                {
+                    System.Console.WriteLine("\nВы ничего не ввели! Попробуйте еще раз!");
+                }
+                else if (cmd.Trim().ToLower() == "да")
+                {
+                    _accountRepo.Clear(account.AccountId);
+                    System.Console.WriteLine("\nВыбранный вами аккаунт был удален!");
+                    return;
+                }
+                else if (cmd.Trim().ToLower() == "нет")
+                {
+                    return;
+                }
+                else
+                {
+                    System.Console.WriteLine("Введите именно да ИЛИ нет! Попробуйте еще раз!");
+                }
+            }
+        }
+
+        private static void AddSomeCategory()
+        {
+            Console.Clear();
+            if (_categoryRepo == null)
+            {
+                System.Console.WriteLine("\nНе получается получить доступ к категориям!");
+                return;
+            }
+            System.Console.WriteLine("Давайте добавим новую категорию!\n");
+
+            System.Console.WriteLine("Список доступных:");
+            var categories = _categoryRepo.GetAllCategories();
+            for (int i = 0; i < categories.Count; ++i)
+            {
+                System.Console.WriteLine($"\nКатегория №{i + 1}");
+                System.Console.WriteLine($"Название: {categories[i].Name}");
+                System.Console.WriteLine($"Тип: {categories[i].Type}");
+            }
+
+            string name;
+            while (true)
+            {
+                System.Console.Write("\nВведите название категории (0 - назад): ");
+                string? cmd = Console.ReadLine();
+
+                if (string.IsNullOrWhiteSpace(cmd))
+                {
+                    System.Console.WriteLine("\nВы ничего не ввели! Попробуйте еще раз!");
+                }
+                else if (cmd.Trim() == "0")
+                {
+                    return;
+                }
+                else if (_categoryRepo.FindCategoryByName(cmd) != null)
+                {
+                    System.Console.WriteLine("Категория с таким именем уже есть! Попробуйте еще раз!");
+                }
+                else
+                {
+                    System.Console.WriteLine("Название записано!");
+                    name = cmd;
+                    break;
+                }
+            }
+
+            OperationType type = new OperationType();
+            while (true)
+            {
+                System.Console.Write("\nВведите тип категории (расход/доход) (0 - назад): ");
+                string? cmd1 = Console.ReadLine();
+                if (string.IsNullOrWhiteSpace(cmd1))
+                {
+                    System.Console.WriteLine("\nВы ничего не ввели! Попробуйте еще раз!");
+                }
+                else if (cmd1.Trim() == "0")
+                {
+                    return;
+                }
+                else if (cmd1.Trim().ToLower() == "расход")
+                {
+                    type = OperationType.Expense;
+                    break;
+                }
+                else if (cmd1.Trim().ToLower() == "доход")
+                {
+                    type = OperationType.Income;
+                    break;
+                }
+                else
+                {
+                    System.Console.WriteLine("\nНужно четко ввести по буквам расход ИЛИ доход! Попробуйте еще раз!");
+                }
+            }
+
+            Guid guid = Guid.NewGuid();
+            Category category = new Category {CategoryId = guid, Type = type, Name = name};
+
+            _categoryRepo.AddNewCategory(category);
+            System.Console.WriteLine("\nКатегория была добавлена!");
+            return;
         }
 
         private static void ImportData()

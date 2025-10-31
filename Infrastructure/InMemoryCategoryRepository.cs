@@ -51,6 +51,18 @@ namespace Infrastructure
             return _categories.ToList();
         }
         public void Clear() => _categories.Clear();
+        public int ClearCategory(Guid id)
+        {
+            for (int i = 0; i < _categories.Count; ++i)
+            {
+                if (_categories[i].CategoryId == id)
+                {
+                    _categories.RemoveAt(i);
+                    return 1;
+                }
+            }
+            return 0;
+        }
 
         public void AddNewCategory(Category category)
         {

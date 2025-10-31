@@ -156,5 +156,25 @@ namespace BankAccountSpace
             decimal res = sum_of_income - sum_of_expense;
             return res == Balance;
         }
+        public int ClearOperation(Guid id)
+        {
+            for (int i = 0; i < _collectionOfOperations.Count; ++i)
+            {
+                if (_collectionOfOperations[i].OperationId == id)
+                {
+                    if (_collectionOfOperations[i].Type == OperationType.Income)
+                    {
+                        Balance -= _collectionOfOperations[i].Amount;
+                    }
+                    else
+                    {
+                        Balance += _collectionOfOperations[i].Amount;
+                    }
+                    _collectionOfOperations.RemoveAt(i);
+                    return 1;
+                }
+            }
+            return 0;
+        }
     }
 }

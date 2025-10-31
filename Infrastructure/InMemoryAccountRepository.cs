@@ -44,5 +44,28 @@ namespace Infrastructure
         }
         public void Clear() => _bankAccounts.Clear();
 
+        public void Clear(Guid id)
+        {
+            for (int i = 0; i < _bankAccounts.Count; ++i)
+            {
+                if (_bankAccounts[i].AccountId == id)
+                {
+                    _bankAccounts.RemoveAt(i);
+                    return;
+                }
+            }
+            return;
+        }
+        public bool CheckIfExistsCategoryById(Guid id)
+        {
+            foreach (var el in _bankAccounts)
+            {
+                if (el.ShowOperations().Find(op => op.CategoryId == id) != null)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
     }
 }

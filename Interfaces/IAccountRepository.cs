@@ -9,5 +9,7 @@ namespace Interfaces
         public void AddNewAccount(BankAccount? account);
         public bool CheckIfExistsByName(string? name);
         public void Clear();
+        public void Clear(Guid id);
+        public bool CheckIfExistsCategoryById(Guid id);
     }
 }

@@ -9,5 +9,6 @@ namespace Interfaces
         public Category? FindCategoryById(Guid id);
         public void AddNewCategory(Category category);
         public void Clear();
+        public int ClearCategory(Guid id);
     }
 }
