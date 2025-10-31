@@ -1,6 +1,5 @@
 using Application;
 using Interfaces;
-using Microsoft.Extensions.DependencyInjection;
 using System.Runtime.InteropServices;
 
 namespace Facades
@@ -32,11 +31,10 @@ namespace Facades
             Console.Clear();
             System.Console.WriteLine("Давайте импортируем файлы!\n");
 
-            System.Console.Write("Выберите, откуда будем импортировать (1 - Json) (0 - назад): ");
-            var cmd = Console.ReadLine();
-
             while (true)
             {
+                System.Console.Write("Выберите, откуда будем импортировать (1 - Json, 2 - CSV) (0 - назад): ");
+                var cmd = Console.ReadLine();
                 switch (cmd)
                 {
                     case "0":
@@ -50,6 +48,7 @@ namespace Facades
                         }
                         try
                         {
+                            _importer = new JsonDataImporter();
                             var snapshot = _importer.Import(path);
                             _restorer.RestoreFromSnapshot(snapshot);
 
@@ -69,6 +68,42 @@ namespace Facades
                         catch (System.Text.Json.JsonException)
                         {
                             System.Console.WriteLine("Json-файл либо поломан, либо имеет неподходящую структуру!");
+                            return;
+                        }
+                    case "2":
+                        var path2 = FilePathHelper();
+                        if (path2 == null)
+                        {
+                            System.Console.WriteLine("Произошла ошибка c путем!");
+                            return;
+                        }
+                        try
+                        {
+                            _importer = new CsvDataImporter();
+                            var snapshot = _importer.Import(path2);
+                            _restorer.RestoreFromSnapshot(snapshot);
+
+                            Console.WriteLine("\nИмпорт завершён!");
+                            return;
+                        }
+                        catch (UnauthorizedAccessException)
+                        {
+                            Console.WriteLine("\nВы указали только папку или у вас нет прав. Введите путь вида: /.../docs/data.csv");
+                            return;
+                        }
+                        catch (FileNotFoundException)
+                        {
+                            System.Console.WriteLine("Файл не был найден!");
+                            return;
+                        }
+                        catch (InvalidOperationException)
+                        {
+                            System.Console.WriteLine("Неподходящий формат!");
+                            return;
+                        }
+                        catch (Exception ex)
+                        {
+                            System.Console.WriteLine($"Произошла ошибка: {ex.Message}");
                             return;
                         }
                     default:
@@ -106,11 +141,12 @@ namespace Facades
 
             Console.Clear();
             System.Console.WriteLine("Давайте экспортируем данные!\n");
-            System.Console.Write("Выберите, куда будем экспортировать (1 - Json) (0 - назад): ");
-            var cmd = Console.ReadLine();
+
 
             while (true)
             {
+                System.Console.Write("Выберите, куда будем экспортировать (1 - Json) (0 - назад): ");
+                var cmd = Console.ReadLine();
                 switch (cmd)
                 {
                     case "0":
@@ -153,7 +189,7 @@ namespace Facades
 
         {
             Console.Clear();
-            Console.Write("Введите путь к файлу (пример: /Users/amir/.../data.json): ");
+            Console.Write("Введите путь к файлу (пример: /Users/amir/.../data.(json/csv)): ");
             var raw = Console.ReadLine();
             if (string.IsNullOrWhiteSpace(raw))
             {

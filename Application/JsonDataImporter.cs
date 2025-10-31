@@ -3,27 +3,22 @@ using System.Text.Encodings.Web;
 
 namespace Application
 {
-    public class JsonDataImporter : IDataImporter
+    public class JsonDataImporter : BaseFileImporter
     {
-        public BankDataSnapshot Import(string path)
+        public override BankDataSnapshot Parse(string content)
         {
-            var json = File.ReadAllText(path);
-
             var options = new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true,
                 Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
             };
 
-            var snapshot = JsonSerializer.Deserialize<BankDataSnapshot>(json, options);
-
+            var snapshot = JsonSerializer.Deserialize<BankDataSnapshot>(content, options);
             if (snapshot == null)
             {
-                throw new InvalidOperationException("Не удалось прочитать данные из файла!");
+                throw new InvalidOperationException("Не удалось распарсить JSON, так как получен null");
             }
-
             return snapshot;
         }
     }
-
 }
