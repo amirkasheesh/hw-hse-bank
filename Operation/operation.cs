@@ -43,5 +43,6 @@ namespace OperationSpace
             CategoryId = categoryId;
             Description = description;
         }
+        public Operation() { }
     }
 }
