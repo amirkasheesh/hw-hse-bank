@@ -8,6 +8,7 @@ using AccountCommands;
 using AnalyticsCommands;
 using CategoryCommands;
 using DataCommands;
+using Decorator;
 
 namespace HseBankSpace
 {
@@ -59,18 +60,18 @@ namespace HseBankSpace
 
             var commands = new List<(string key, ICommand cmd)>
             {
-                ("1", new CreateAccountCommand(accountsFacade)),
-                ("2", new AddOperationCommand(accountsFacade)),
-                ("3", new DeleteAccountCommand(accountsFacade)),
-                ("4", new DeleteOperationCommand(accountsFacade)),
-                ("5", new ShowExtractCommand(analyticsFacade)),
-                ("6", new ShowResultsCommand(analyticsFacade)),
-                ("7", new ShowSummaryByCategoryCommand(analyticsFacade)),
-                ("8", new CheckBalanceCommand(analyticsFacade)),
-                ("9", new AddSomeCategoryCommand(categoriesFacade)),
-                ("10", new DeleteCategoryCommand(categoriesFacade)),
-                ("11", new ExportDataCommand(importExportFacade)),
-                ("12", new ImportDataCommand(importExportFacade))
+                ("1", new TimedCommand(new SafeCommand(new CreateAccountCommand(accountsFacade)))),
+                ("2", new TimedCommand(new SafeCommand(new AddOperationCommand(accountsFacade)))),
+                ("3", new TimedCommand(new SafeCommand(new DeleteAccountCommand(accountsFacade)))),
+                ("4", new TimedCommand(new SafeCommand(new DeleteOperationCommand(accountsFacade)))),
+                ("5", new TimedCommand(new SafeCommand(new ShowExtractCommand(analyticsFacade)))),
+                ("6", new TimedCommand(new SafeCommand(new ShowResultsCommand(analyticsFacade)))),
+                ("7", new TimedCommand(new SafeCommand(new ShowSummaryByCategoryCommand(analyticsFacade)))),
+                ("8", new TimedCommand(new SafeCommand(new CheckBalanceCommand(analyticsFacade)))),
+                ("9", new TimedCommand(new SafeCommand(new AddSomeCategoryCommand(categoriesFacade)))),
+                ("10", new TimedCommand(new SafeCommand(new DeleteCategoryCommand(categoriesFacade)))),
+                ("11", new TimedCommand(new SafeCommand(new ExportDataCommand(importExportFacade)))),
+                ("12", new TimedCommand(new SafeCommand(new ImportDataCommand(importExportFacade))))
             };
 
 
