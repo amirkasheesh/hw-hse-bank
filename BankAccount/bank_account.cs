@@ -37,6 +37,16 @@ namespace BankAccountSpace
                 throw new InvalidOperationException("Дата не установлена должным образом!");
             }
 
+            if (amount <= 0)
+            {
+                throw new ArgumentException("Сумма операции не может быть отрицательной или равной нулю! Попробуйте еще раз!");
+            }
+
+            if (date > DateTime.Now)
+            {
+                throw new InvalidOperationException("\nНельзя добавлять операции из будущего! Попробуйте еще раз!");
+            }
+
             Guid guid = Guid.NewGuid();
             Operation local_operation = new Operation(guid, category.Type, amount, date, category.CategoryId);
             local_operation.AccountId = this.AccountId;
@@ -73,6 +83,16 @@ namespace BankAccountSpace
             if (date == DateTime.MinValue || date == DateTime.MaxValue)
             {
                 throw new InvalidOperationException("Дата не установлена должным образом!");
+            }
+
+            if (amount <= 0)
+            {
+                throw new ArgumentException("Сумма операции не может быть отрицательной или равной нулю! Попробуйте еще раз!");
+            }
+
+            if (date > DateTime.Now)
+            {
+                throw new InvalidOperationException("\nНельзя добавлять операции из будущего! Попробуйте еще раз!");
             }
 
             Guid guid = Guid.NewGuid();
