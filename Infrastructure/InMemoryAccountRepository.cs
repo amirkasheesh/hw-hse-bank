@@ -25,7 +25,7 @@ namespace Infrastructure
             return _bankAccounts.Select(account => account.Name.ToLower()).Contains(name.Trim().ToLower());
         }
 
-        public BankAccount? FindAccountByID(Guid id) // Можно не парсить айди, так как делаем это в Program.cs
+        public BankAccount? FindAccountByID(Guid id)
         {
             foreach (var el in _bankAccounts)
             {
@@ -66,6 +66,28 @@ namespace Infrastructure
                 }
             }
             return false;
+        }
+
+        public void ShowAllAccounts()
+        {
+            Console.Clear();
+            if (_bankAccounts.Count == 0)
+            {
+                System.Console.WriteLine("Счетов еще нет! Создайте хотя бы один!");
+                return;
+            }
+            System.Console.WriteLine("\tВаши доступные счета: \n");
+            int res = 0;
+            for (int i = 0; i < _bankAccounts.Count; ++i)
+            {
+                System.Console.WriteLine($"Счет №{i + 1}:");
+                System.Console.WriteLine($"Имя: {_bankAccounts[i].Name}");
+                System.Console.WriteLine($"Уникальный идентификатор: {_bankAccounts[i].AccountId}");
+                System.Console.WriteLine($"Баланс: {_bankAccounts[i].Balance:F2}");
+                System.Console.WriteLine();
+                ++res;
+            }
+            System.Console.WriteLine($"Количество счетов: {res}\n");
         }
     }
 }

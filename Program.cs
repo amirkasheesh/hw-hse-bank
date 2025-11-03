@@ -71,7 +71,8 @@ namespace HseBankSpace
                 ("9", new TimedCommand(new SafeCommand(new AddSomeCategoryCommand(categoriesFacade)))),
                 ("10", new TimedCommand(new SafeCommand(new DeleteCategoryCommand(categoriesFacade)))),
                 ("11", new TimedCommand(new SafeCommand(new ExportDataCommand(importExportFacade)))),
-                ("12", new TimedCommand(new SafeCommand(new ImportDataCommand(importExportFacade))))
+                ("12", new TimedCommand(new SafeCommand(new ImportDataCommand(importExportFacade)))),
+                ("13", new TimedCommand(new SafeCommand(new ShowAccountsCommand(accountsFacade))))
             };
 
 
@@ -85,7 +86,7 @@ namespace HseBankSpace
                 }
                 System.Console.WriteLine("0) Выход.");
 
-                System.Console.Write("\nВаш выбор (0 - 12): ");
+                System.Console.Write("\nВаш выбор (0 - 13): ");
                 var command_input = Console.ReadLine();
                 System.Console.WriteLine();
 

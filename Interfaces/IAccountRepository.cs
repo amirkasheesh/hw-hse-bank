@@ -11,5 +11,7 @@ namespace Interfaces
         public void Clear();
         public void Clear(Guid id);
         public bool CheckIfExistsCategoryById(Guid id);
+
+        public void ShowAllAccounts();
     }
 }

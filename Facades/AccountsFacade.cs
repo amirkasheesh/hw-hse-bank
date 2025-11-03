@@ -68,7 +68,7 @@ namespace Facades
             var account = selector.SelectAccount(_accountRepository);
 
             if (account == null)
-            {   
+            {
                 return;
             }
 
@@ -106,7 +106,7 @@ namespace Facades
             var account = selector.SelectAccount(_accountRepository);
 
             if (account == null)
-            {   
+            {
                 return;
             }
 
@@ -271,6 +271,11 @@ namespace Facades
             {
                 System.Console.WriteLine($"Общая ошибка: {ex.Message}");
             }
+        }
+
+        public void ShowAccounts()
+        {
+            _accountRepository.ShowAllAccounts();
         }
     }
 }
