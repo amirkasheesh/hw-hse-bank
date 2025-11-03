@@ -23,8 +23,11 @@ namespace HseBankSpace
         public static void Main()
         {
             IServiceCollection services = new ServiceCollection();
-            services.AddSingleton<IAccountRepository, InMemoryAccountRepository>();
-            services.AddSingleton<ICategoryRepository, InMemoryCategoryRepository>();
+            services.AddSingleton<IAccountRepository>(sp =>
+                new LoggingAccountRepository(new InMemoryAccountRepository()));
+
+            services.AddSingleton<ICategoryRepository>(sp =>
+                new LoggingCategoryRepository(new InMemoryCategoryRepository()));
             services.AddSingleton<IDataImporter, JsonDataImporter>();
             services.AddSingleton<IDataExporter, JsonDataExporter>();
             services.AddSingleton<DataRestoreService>();
