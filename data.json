@@ -1,0 +1,52 @@
+{
+  "Categories": [
+    {
+      "CategoryId": "8a48159d-9433-4eea-80ab-5515accd54b6",
+      "Type": 1,
+      "Name": "Зарплата"
+    },
+    {
+      "CategoryId": "85b54637-4dc1-49da-8206-53c76bc4e066",
+      "Type": 1,
+      "Name": "Кэшбек"
+    },
+    {
+      "CategoryId": "4fcbdfce-3434-4821-b502-97cac7643175",
+      "Type": 0,
+      "Name": "Рестораны/Кафе"
+    },
+    {
+      "CategoryId": "045198fb-a62b-447a-ba77-20b5ef514ff4",
+      "Type": 0,
+      "Name": "Транспорт"
+    },
+    {
+      "CategoryId": "dbd281e8-ea14-4d71-82a9-09618a98d5de",
+      "Type": 0,
+      "Name": "Здоровье"
+    },
+    {
+      "CategoryId": "356a2557-d017-448a-9998-38db6eca4db0",
+      "Type": 0,
+      "Name": "Развлечения"
+    }
+  ],
+  "Accounts": [
+    {
+      "AccountId": "5079872d-3e40-49b5-8e5a-6b020740220c",
+      "Name": "Amir_1",
+      "Balance": 1000,
+      "Operations": [
+        {
+          "OperationId": "8b6479f8-c4e0-4894-aea1-5401fd53839d",
+          "Type": 1,
+          "AccountId": "5079872d-3e40-49b5-8e5a-6b020740220c",
+          "Amount": 1000,
+          "Date": "2020-01-20T00:00:00",
+          "CategoryId": "8a48159d-9433-4eea-80ab-5515accd54b6",
+          "Description": null
+        }
+      ]
+    }
+  ]
+}

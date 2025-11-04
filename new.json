@@ -1,0 +1,82 @@
+{
+  "Categories": [
+    {
+      "CategoryId": "48b3a033-6405-4457-a85a-31f296f6a555",
+      "Type": 1,
+      "Name": "Зарплата"
+    },
+    {
+      "CategoryId": "f58417f9-9a8e-4f3b-9658-edde2cf49100",
+      "Type": 1,
+      "Name": "Кэшбек"
+    },
+    {
+      "CategoryId": "f0d3af7a-2272-4f62-8803-20de9ba197cc",
+      "Type": 0,
+      "Name": "Рестораны/Кафе"
+    },
+    {
+      "CategoryId": "43589afc-9261-4049-bd17-4f111db987c5",
+      "Type": 0,
+      "Name": "Транспорт"
+    },
+    {
+      "CategoryId": "d75c4c48-7271-4038-b3a5-c591d70d5e03",
+      "Type": 0,
+      "Name": "Здоровье"
+    },
+    {
+      "CategoryId": "31743d4d-d4d6-41b5-88d9-f7dc9ef4aa67",
+      "Type": 0,
+      "Name": "Развлечения"
+    },
+    {
+      "CategoryId": "8e3fbe17-59c6-4773-9ea6-8eeb69feb57a",
+      "Type": 1,
+      "Name": "стипендия"
+    }
+  ],
+  "Accounts": [
+    {
+      "AccountId": "b082499c-a4c8-4335-a14d-89f316e50333",
+      "Name": "Amir_1",
+      "Balance": 2000,
+      "Operations": [
+        {
+          "OperationId": "38e6163d-d42f-463c-867a-73e0591a6cfb",
+          "Type": 1,
+          "AccountId": "b082499c-a4c8-4335-a14d-89f316e50333",
+          "Amount": 2000,
+          "Date": "2020-01-20T00:00:00",
+          "CategoryId": "48b3a033-6405-4457-a85a-31f296f6a555",
+          "Description": null
+        }
+      ]
+    },
+    {
+      "AccountId": "c30d3e33-7a1a-4296-a2b1-335f2c83a21c",
+      "Name": "Amir_2",
+      "Balance": 500,
+      "Operations": [
+        {
+          "OperationId": "56fa9579-6662-4c15-8adf-afbe3c62478e",
+          "Type": 1,
+          "AccountId": "c30d3e33-7a1a-4296-a2b1-335f2c83a21c",
+          "Amount": 1000,
+          "Date": "2020-01-21T00:00:00",
+          "CategoryId": "f58417f9-9a8e-4f3b-9658-edde2cf49100",
+          "Description": "ура зп пришла"
+        },
+        {
+          "OperationId": "53dc45f7-4e87-434c-9083-09d7d20a3f2d",
+          "Type": 0,
+          "AccountId": "c30d3e33-7a1a-4296-a2b1-335f2c83a21c",
+          "Amount": 500,
+          "Date": "2020-01-23T00:00:00",
+          "CategoryId": "d75c4c48-7271-4038-b3a5-c591d70d5e03",
+          "Description": null
+        }
+      ]
+    }
+  ]
+}
